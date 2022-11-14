@@ -27,6 +27,8 @@
   },
   "homepage": "https://github.com/healthscience/hop-cli#readme",
   "dependencies": {
-    "commander": "^9.4.1"
+    "commander": "^9.4.1",
+    "inquirer": "^9.1.4",
+    "ws": "^8.11.0"
   }
 }
