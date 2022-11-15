@@ -11,6 +11,7 @@
 */
 import util from 'util'
 import EventEmitter from 'events'
+import LiveHOP from 'hop'
 
 class LaunchHOP extends EventEmitter {
 
@@ -26,7 +27,7 @@ class LaunchHOP extends EventEmitter {
   *
   */
   startSFECS = function (options) {
-    
+    let hopSF = new LiveHOP(options)
   }
 }
 

@@ -47,19 +47,15 @@ program
     })
 program.parse()
 
-let messageLive = new MessageHop()
-let liveHOP = new LaunchHop()
-let liveLibrary = new Library()
-
 function hopRouter (type, options) {
-    console.log('what to do?')
-    console.log(type)
-    console.log(options)
-    if (type === 'launch') {
-      liveHOP.start(options)
-    } else if (type === 'hopmessage') {
-      messageLive.sendMessage(options)
-    } else if (type === 'library') {
-      liveLibrary.start(options)
-    }
+  let messageLive = new MessageHop()
+  let startHOP = new LaunchHOP()
+  let liveLibrary = new Library()
+  if (type === 'launch') {
+    startHOP.startSFECS(options)
+  } else if (type === 'hopmessage') {
+    messageLive.sendMessage(options)
+  } else if (type === 'library') {
+    liveLibrary.start(options)
+  }
 }
