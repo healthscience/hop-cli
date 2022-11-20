@@ -16,7 +16,7 @@ class LibraryHOP extends EventEmitter {
 
   constructor() {
     super()
-    console.log('{{Launch HOP cli}}')
+    console.log('{{Library interface HOP cli}}')
   }
 }
 

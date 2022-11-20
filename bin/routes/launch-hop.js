@@ -1,6 +1,6 @@
 'use strict'
 /**
-*  cli brin to life HOP
+*  cli bring to life HOP
 *
 *
 * @class LaunchHOP
@@ -17,7 +17,7 @@ class LaunchHOP extends EventEmitter {
 
   constructor() {
     super()
-    console.log('{{Launch HOP cli}}')
+    console.log('{{Launch interface HOP cli}}')
     this.liveSF = {}
   }
 
@@ -27,7 +27,7 @@ class LaunchHOP extends EventEmitter {
   *
   */
   startSFECS = function (options) {
-    let hopSF = new LiveHOP(options)
+    // let hopSF = new LiveHOP(options)
   }
 }
 

@@ -18,33 +18,57 @@ class MessageHOP extends EventEmitter {
 
   constructor() {
     super()
-    console.log('{{Message cli}}')
+    console.log('{{Message interface cli}}')
+    this.setwSocket()
+  }
 
-    const ws = new WebSocket('wss://127.0.0.1:9888', {
-      rejectUnauthorized: false
+  /**
+  * send message to protocol
+  * @method setwSocket
+  *
+  */
+  setwSocket = function () {
+
+    let ws = new WebSocket('wss://127.0.0.1:9888', {
+      rejectUnauthorized: false,
+      perMessageDeflate: false
     })
+
+    this.messageListener(ws)
 
     ws.on('open', function open() {
       console.log('ws open')
     })
 
+
     ws.on('message', function message(data) {
-      console.log('received: %s', data);
+      console.log('received: %s', data)
+    })
+
+    ws.on('close', function closem() {
+
     })
   }
 
   /**
   * send message to protocol
-  * @method sendMessage
+  * @method messageListener
   *
   */
-  sendMessage = function (message) {
+   messageListener = function (ws) {
     console.log('message out')
-    let startHOP = {}
-    startHOP.reftype = 'ignore'
-    startHOP.type = 'launch'
-    let jsonStart = JSON.stringify(startHOP)
-    ws.send(jsonStart)
+
+    this.on('hop-m', (messout) => {
+      console.log('new message emitted for sending1')
+      console.log(messout)
+      let startHOP = {}
+      startHOP.reftype = 'ignore'
+      startHOP.type = messout.text
+      startHOP.action = messout.action
+      startHOP.data = {}
+      let jsonStart = JSON.stringify(startHOP)
+      ws.send(jsonStart)
+    })
   }
 
 }
