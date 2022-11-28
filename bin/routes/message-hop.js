@@ -19,7 +19,8 @@ class MessageHOP extends EventEmitter {
   constructor() {
     super()
     console.log('{{Message interface cli}}')
-    this.setwSocket()
+    // this.setwSocket()
+    this.connected = false
   }
 
   /**
@@ -36,8 +37,9 @@ class MessageHOP extends EventEmitter {
 
     this.messageListener(ws)
 
-    ws.on('open', function open() {
+    ws.on('connection', function open() {
       console.log('ws open')
+      this.connected = true
     })
 
 
@@ -51,13 +53,22 @@ class MessageHOP extends EventEmitter {
   }
 
   /**
+  * socket connected?
+  * @method checkSocket
+  *
+  */
+  checkSocket = function () {
+    console.log('check sockete')
+    return this.connected
+  }
+
+  /**
   * send message to protocol
   * @method messageListener
   *
   */
    messageListener = function (ws) {
     console.log('message out')
-
     this.on('hop-m', (messout) => {
       console.log('new message emitted for sending1')
       console.log(messout)

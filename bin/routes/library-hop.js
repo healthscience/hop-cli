@@ -18,6 +18,16 @@ class LibraryHOP extends EventEmitter {
     super()
     console.log('{{Library interface HOP cli}}')
   }
-}
 
+  /**
+  * route message to library functions
+  * @method checkLibrary
+  *
+  */
+  checkLibrary = function (options) {
+    console.log('library check')
+    console.log(options)
+    return true
+  }
+}
 export default LibraryHOP

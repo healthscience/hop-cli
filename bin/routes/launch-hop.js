@@ -11,7 +11,7 @@
 */
 import util from 'util'
 import EventEmitter from 'events'
-import LiveHOP from 'hop'
+import LiveHOP from 'hop-ecs'
 
 class LaunchHOP extends EventEmitter {
 
@@ -27,7 +27,9 @@ class LaunchHOP extends EventEmitter {
   *
   */
   startSFECS = function (options) {
-    // let hopSF = new LiveHOP(options)
+    console.log('start hop')
+    console.log(options)
+    let hopSF = new LiveHOP(options)
   }
 }
 

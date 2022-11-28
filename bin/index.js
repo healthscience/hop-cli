@@ -22,7 +22,7 @@ program
     .command('launch [launch]')
     .description('start HOP')
     .option('-a, --address [addr]', 'web socket url')
-    .option('-p, --port [port]', 'web socket port')
+    .option('-p, --port [port]', 'web socket port', '9888')
     // .parse(process.argv)
     .action((str, options) => {
       hopRouter('launch', options)
@@ -50,22 +50,42 @@ program.parse()
 
 function hopRouter (type, options) {
   console.log(type)
-  let messageLive = new MessageHop()
+  console.log(options)
   let startHOP = new LaunchHOP()
+  let messageLive = new MessageHop()
   let liveLibrary = new Library()
-  function waitSetup () {
-    console.log('setting up websocket client')
-    if (type === 'launch') {
-      startHOP.startSFECS(options)
-    } else if (type === 'message') {
-      // first make sure HOP connection is live & launched
-      // messageLive.sendMessage(options)
-      messageLive.emit('hop-m', options)
-    } else if (type === 'library') {
-      // first make sure HOP connection is live & launched
-      liveLibrary.start(options)
-    }
-  }
-  setTimeout(waitSetup, 1000)
 
-}
+  console.log('setting up websocket client')
+  if (type === 'launch') {
+    startHOP.startSFECS(options)
+  } else if (type === 'message') {
+    // first make sure HOP connection is live & launched
+    // checkHOPconnection()
+    messageLive.setwSocket(options)
+    // messageLive.sendMessage(options)
+    // messageLive.emit('hop-m', options)
+  } else if (type === 'library') {
+    // first make sure HOP connection is live & launched
+    let cliState = checkHOPconnection()
+    console.log('please launch HOP first')
+    liveLibrary.checkLibrary(options)
+  }
+
+  function checkHOPconnection () {
+    let connectionLive = false
+    // check message for connection
+    connectionLive  = messageLive.checkSocket()
+    return connectionLive
+  }
+
+  function waitSetup (options) {
+    console.log('called')
+    console.log(options)
+  }
+
+  /*
+  setTimeout(function () {
+    waitSetup(options)},
+     2000) */
+
+} 
