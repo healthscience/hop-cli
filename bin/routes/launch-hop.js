@@ -17,7 +17,7 @@ class LaunchHOP extends EventEmitter {
 
   constructor() {
     super()
-    console.log('{{Launch interface HOP cli}}')
+    this.live = true
     this.liveSF = {}
   }
 
@@ -27,9 +27,8 @@ class LaunchHOP extends EventEmitter {
   *
   */
   startSFECS = function (options) {
-    console.log('start hop')
-    console.log(options)
     let hopSF = new LiveHOP(options)
+    hopSF.liveHyperspace()
   }
 }
 

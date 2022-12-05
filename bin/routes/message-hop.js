@@ -18,9 +18,8 @@ class MessageHOP extends EventEmitter {
 
   constructor() {
     super()
-    console.log('{{Message interface cli}}')
-    // this.setwSocket()
     this.connected = false
+    this.wsocket = {}
   }
 
   /**
@@ -29,27 +28,35 @@ class MessageHOP extends EventEmitter {
   *
   */
   setwSocket = function () {
-
-    let ws = new WebSocket('wss://127.0.0.1:9888', {
+    console.log('set socket client')
+    let wsClient = new WebSocket('wss://127.0.0.1:9888', {
+      noServer: true,
       rejectUnauthorized: false,
       perMessageDeflate: false
     })
-
-    this.messageListener(ws)
-
-    ws.on('connection', function open() {
-      console.log('ws open')
+    this.wsocket = wsClient
+    wsClient.on('open', function open() {
+      console.log('ws open client')
       this.connected = true
+      this.emit('message', 'live')
     })
 
 
-    ws.on('message', function message(data) {
-      console.log('received: %s', data)
+    wsClient.on('message', (data) => {
+      this.displayFormatter(data)
     })
 
-    ws.on('close', function closem() {
+    wsClient.on('close', function closem() {
 
     })
+    
+    wsClient.on('error', function error() {
+      console.log('socket client error')
+      // process.exit(1)
+      this.emit('hop', 'none')
+     })
+
+     // this.messageListener(wsClient)
   }
 
   /**
@@ -58,29 +65,55 @@ class MessageHOP extends EventEmitter {
   *
   */
   checkSocket = function () {
-    console.log('check sockete')
+    console.log('check socket')
     return this.connected
   }
 
   /**
-  * send message to protocol
-  * @method messageListener
+  * format for display on cli or maybe offer save as a file?
+  * @method displayFormatter
   *
   */
-   messageListener = function (ws) {
-    console.log('message out')
+  displayFormatter = function (data) {
+    console.log('display formatter')
+    // console.log(data)
+    if (typeof data !== 'string') {
+      let buf = JSON.parse(data)
+      // let bufJSON = JSON.parse(buf.toString())
+      // let convert = bufJSON.data.toJSON()
+      // let stringO = data.toString()
+      // console.log(JSON.parse(stringO))
+      // let dataString = data.toString()
+      console.log(buf)
+      // console.table(buf)
+      console.log(util.inspect(buf, {showHidden: false, depth: null, colors: true}))
+      this.emit('startover')
+    }
+
+  }
+
+  /**
+  * send message to protocol
+  * @method messageSend
+  *
+  */
+  messageSend = function (ws) {
     this.on('hop-m', (messout) => {
-      console.log('new message emitted for sending1')
-      console.log(messout)
       let startHOP = {}
       startHOP.reftype = 'ignore'
       startHOP.type = messout.text
       startHOP.action = messout.action
       startHOP.data = {}
       let jsonStart = JSON.stringify(startHOP)
-      ws.send(jsonStart)
+      this.wsocket.send(jsonStart)
     })
-  }
+
+    this.on('library', (messout) => {
+      // console.log('library out message')
+      // console.log(messout)
+      this.wsocket.send(JSON.stringify(messout))
+    })
+   }
 
 }
 

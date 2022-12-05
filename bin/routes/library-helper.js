@@ -16,18 +16,31 @@ class LibraryHOP extends EventEmitter {
 
   constructor() {
     super()
-    console.log('{{Library interface HOP cli}}')
+    this.live = true
   }
 
   /**
-  * route message to library functions
+  * check library is live
   * @method checkLibrary
   *
   */
   checkLibrary = function (options) {
-    console.log('library check')
-    console.log(options)
     return true
   }
+
+  /**
+  * build query for SafeFlow ECS
+  * @method formQuery
+  *
+  */
+  formQuery = function (input) {
+    let query= {}
+    query.type = 'library'
+    query.reftype = input.type
+    query.action = 'GET'
+    query.data = input.refcont
+  return query
+}
+
 }
 export default LibraryHOP
