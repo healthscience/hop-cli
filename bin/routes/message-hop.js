@@ -85,9 +85,11 @@ class MessageHOP extends EventEmitter {
       // console.log(JSON.parse(stringO))
       // let dataString = data.toString()
       console.log(buf)
-      // console.table(buf)
-      console.log(util.inspect(buf, {showHidden: false, depth: null, colors: true}))
-      this.emit('startover')
+      if (buf.type !== 'hyperbee-pubkeys') {
+        // console.table(buf)
+        console.log(util.inspect(buf, {showHidden: false, depth: null, colors: true}))
+        this.emit('startover')
+      }
     }
 
   }

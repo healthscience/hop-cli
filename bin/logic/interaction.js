@@ -37,10 +37,18 @@ class CliLogic extends EventEmitter {
     // let messageLive = new MessageHop()
     // this.messageListener(messageLive)
     // let liveLibrary = new Library()
-  
+    console.log('type')
+    console.log(type)
+    console.log(options)
     if (type === 'launch') {
       this.startHOP.startSFECS(options)
-      this.InteractiveHOP(type)
+      this.messageLive.setwSocket()
+      this.messageLive.messageSend()
+      if (options.interactive === true) {
+        this.InteractiveHOP(type)
+      } else {
+        // setup headless mode
+      }
     } else if (type === 'message') {
       // first make sure HOP connection is live & launched
       // checkHOPconnection()
@@ -82,7 +90,8 @@ class CliLogic extends EventEmitter {
     })
     this.messageLive.on('startover', () => {
       console.log('ready for new input')
-      // askRefContract()
+      this.InteractiveHOP('launch')
+      // this.askRefContract()
     })    
   }
 
@@ -96,18 +105,11 @@ class CliLogic extends EventEmitter {
   InteractiveHOP = function (type) {
     console.log('interactive live')
     // need to have different interaction for setup, library, get or put etc.
-    this.messageLive.setwSocket()
-    this.messageLive.messageSend()
-  
-    let baseQuestion = [{ 
-      question: `View contract`,
+    let baseContracttype = [{ 
+      question: `Type of reference contract`,
       options: [
-        'datatype',
-        'compute',
-        'data',
-        'visualisation',
-        'experiment',
-        'module'
+        'safelowECS',
+        'library'
       ]
     }].map(({
       question,
@@ -138,17 +140,18 @@ class CliLogic extends EventEmitter {
   
     let questions = []
   
-    if (type === 'launch') {
-      questions = baseQuestion
-    } else if (type === 'library') {
-      questions = testQuestions
-    }
+    questions = baseContracttype
   
     inquirer
     .prompt(questions)
     .then((answers) => {
       // addition prompt yes or no?
-      this.askRefContract()
+      console.log(answers)
+      if (answers[0] === 'safelflow') {
+        this.safeflowModulecontract()
+      } else if (answers[0] === 'library') {
+        this.libraryRefcontracts(answers)
+      }
     })
     .catch((error) => {
       if (error.isTtyError) {
@@ -160,36 +163,44 @@ class CliLogic extends EventEmitter {
   }
 
   /**
-  * f020a98b100ac40c109a1488220e9874cfa3f43a
-  * @method inputLogic
+  * 
+  * @method libraryRefcontracts
   *
   */
-  inputLogic = function (selection, inputType) {
-    let extractChoice = ''
-    let refContract = ''
-    // need logic to extract answers e.g. input list multi choice etc
-    if (inputType === 'refcontract') {
-      extractChoice = 'refcontract'
-      refContract = selection.refcontract
-    } else {
-      extractChoice = selection[0]
-    }
-
-    if (extractChoice === 'exit') {
+  libraryRefcontracts = function (input) {
+    console.log('library contract options')
+    console.log(input)
+    if (input[0] === 'exit') {
       console.log('exit the interactive prompt')
       process.exit(1)
-    } else if (extractChoice === 'datatype') {
-      console.log('get library ref contract for data type, need contract id')
-    } else if (extractChoice === 'refcontract') {
-      // go and look up reference contract for with id
-      let peerInput = {}
-      peerInput.type = 'datatype'
-      peerInput.refcont = refContract
-      // need to send input to SafeFlow via a message
-      let libraryInput = this.liveLibrary.formQuery(peerInput)
-      // pass via messenger
-      this.messageLive.emit('library', libraryInput)
     }
+    let baseQuestion = [{ 
+      question: `View contract`,
+      options: [
+        'datatype',
+        'compute',
+        'data',
+        'visualisation',
+        'experiment',
+        'module',
+        'exit'
+      ]
+    }].map(({
+      question,
+      options
+    }, i) => ({  
+      type: 'list',
+      message: question,
+      choices: options,
+      name: `${i}`,
+    }))
+    
+      inquirer
+      .prompt(baseQuestion)
+      .then((answers) => {
+        // addition prompt yes or no?
+        this.askRefContract(answers)
+      })
    }
 
   /**
@@ -197,8 +208,11 @@ class CliLogic extends EventEmitter {
   * @method askRefContract
   *
   */
-  askRefContract = function () {
-
+   askRefContract = function (input) {
+    if (input[0] === 'exit') {
+      console.log('exit the interactive prompt')
+      process.exit(1)
+    }
     let refQuestion = [
       {
         type: 'input',
@@ -219,8 +233,47 @@ class CliLogic extends EventEmitter {
       .prompt(refQuestion)
       .then((answers) => {
         // addition prompt yes or no?
-        this.inputLogic(answers, 'refcontract')
+        this.inputLogic(input, answers, 'refcontract')
       })
+   }
+
+
+  /**
+  * f020a98b100ac40c109a1488220e9874cfa3f43a
+  * @method inputLogic
+  *
+  */
+  inputLogic = function (input, selection, inputType) {
+    console.log('selct and id')
+    console.log(input)
+    console.log(selection)
+    console.log(inputType)
+    let extractChoice = ''
+    let refContract = ''
+    // need logic to extract answers e.g. input list multi choice etc
+    if (inputType === 'refcontract') {
+      extractChoice = 'refcontract'
+      refContract = selection.refcontract
+    } else {
+      extractChoice = selection[0]
+    }
+    console.log('choice')
+    console.log(extractChoice)
+    if (extractChoice === 'exit') {
+      console.log('exit the interactive prompt')
+      process.exit(1)
+    } else if (extractChoice === 'datatype') {
+      console.log('get library ref contract for data type, need contract id')
+    } else if (extractChoice === 'refcontract') {
+      // go and look up reference contract for with id
+      let peerInput = {}
+      peerInput.type = 'datatype'
+      peerInput.refcont = refContract
+      // need to send input to SafeFlow via a message
+      let libraryInput = this.liveLibrary.formQuery(peerInput)
+      // pass via messenger
+      this.messageLive.emit('library', libraryInput)
+    }
    }
 
 }
