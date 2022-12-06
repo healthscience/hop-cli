@@ -149,7 +149,7 @@ class CliLogic extends EventEmitter {
       if (answers[0] === 'bentoboard') {
         this.safeflowModulecontract(answers)
       } else if (answers[0] === 'library') {
-        this.libraryRefcontracts(answers)
+        this.typeContract(answers)
       }
     })
     .catch((error) => {
@@ -200,6 +200,81 @@ class CliLogic extends EventEmitter {
 
   /**
   * 
+  * @method typeContract
+  *
+  */
+   typeContract = function (input) {
+    if (input[0] === 'exit') {
+      console.log('exit the interactive prompt')
+      process.exit(1)
+    }
+    let baseQuestion = [{ 
+      question: `Style of contract`,
+      options: [
+        'reference',
+        'module',
+        'exit'
+      ]
+    }].map(({
+      question,
+      options
+    }, i) => ({  
+      type: 'list',
+      message: question,
+      choices: options,
+      name: `${i}`,
+    }))
+    
+      inquirer
+      .prompt(baseQuestion)
+      .then((answers) => {
+        // addition prompt yes or no?
+        if (answers[0] === 'reference') {
+          this.libraryRefcontracts(answers)
+        } else if (ansers[0] === 'module') {
+          this.moduleContracts(answers)
+        }
+      })
+   }
+
+  /**
+  * 
+  * @method moduleContracts
+  *
+  */
+  moduleContracts = function (input) {
+    console.log(input)
+    if (input[0] === 'exit') {
+      console.log('exit the interactive prompt')
+      process.exit(1)
+    }
+    let baseQuestion = [{ 
+      question: `Select module type`,
+      options: [
+        'board',
+        'experiment',
+        'exit'
+      ]
+    }].map(({
+      question,
+      options
+    }, i) => ({  
+      type: 'list',
+      message: question,
+      choices: options,
+      name: `${i}`,
+    }))
+    
+      inquirer
+      .prompt(baseQuestion)
+      .then((answers) => {
+        // addition prompt yes or no?
+        this.askRefContract(answers, 'library')
+      })
+   }
+
+  /**
+  * 
   * @method libraryRefcontracts
   *
   */
@@ -217,8 +292,6 @@ class CliLogic extends EventEmitter {
         'compute',
         'data',
         'visualisation',
-        'experiment',
-        'module',
         'exit'
       ]
     }].map(({
