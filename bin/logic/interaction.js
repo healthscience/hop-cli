@@ -91,7 +91,6 @@ class CliLogic extends EventEmitter {
     this.messageLive.on('startover', () => {
       console.log('ready for new input')
       this.InteractiveHOP('launch')
-      // this.askRefContract()
     })    
   }
 
@@ -108,7 +107,7 @@ class CliLogic extends EventEmitter {
     let baseContracttype = [{ 
       question: `Type of reference contract`,
       options: [
-        'safelowECS',
+        'bentoboard',
         'library'
       ]
     }].map(({
@@ -147,8 +146,8 @@ class CliLogic extends EventEmitter {
     .then((answers) => {
       // addition prompt yes or no?
       console.log(answers)
-      if (answers[0] === 'safelflow') {
-        this.safeflowModulecontract()
+      if (answers[0] === 'bentoboard') {
+        this.safeflowModulecontract(answers)
       } else if (answers[0] === 'library') {
         this.libraryRefcontracts(answers)
       }
@@ -161,6 +160,43 @@ class CliLogic extends EventEmitter {
       }
     })
   }
+
+  /**
+  * 
+  * @method safeflowModulecontract
+  *
+  */
+   safeflowModulecontract = function (input) {
+      console.log('bboard nxp contract module')
+      console.log(input)
+      if (input[0] === 'exit') {
+        console.log('exit the interactive prompt')
+        process.exit(1)
+      }
+      let baseQuestion = [{ 
+        question: `View Bento Board Module Contract`,
+        options: [
+          'experiment',
+          'back',
+          'exit'
+        ]
+      }].map(({
+        question,
+        options
+      }, i) => ({  
+        type: 'list',
+        message: question,
+        choices: options,
+        name: `${i}`,
+      }))
+      
+        inquirer
+        .prompt(baseQuestion)
+        .then((answers) => {
+          // addition prompt yes or no?
+          this.askRefContract(answers, 'safeflow')
+        })      
+   }
 
   /**
   * 
@@ -199,7 +235,7 @@ class CliLogic extends EventEmitter {
       .prompt(baseQuestion)
       .then((answers) => {
         // addition prompt yes or no?
-        this.askRefContract(answers)
+        this.askRefContract(answers, 'library')
       })
    }
 
@@ -208,7 +244,7 @@ class CliLogic extends EventEmitter {
   * @method askRefContract
   *
   */
-   askRefContract = function (input) {
+   askRefContract = function (input, type) {
     if (input[0] === 'exit') {
       console.log('exit the interactive prompt')
       process.exit(1)
@@ -233,13 +269,13 @@ class CliLogic extends EventEmitter {
       .prompt(refQuestion)
       .then((answers) => {
         // addition prompt yes or no?
-        this.inputLogic(input, answers, 'refcontract')
+        this.inputLogic(input, answers, type)
       })
    }
 
 
   /**
-  * f020a98b100ac40c109a1488220e9874cfa3f43a
+  * f020a98b100ac40c109a1488220e9874cfa3f43a  -- compute
   * @method inputLogic
   *
   */
@@ -251,27 +287,29 @@ class CliLogic extends EventEmitter {
     let extractChoice = ''
     let refContract = ''
     // need logic to extract answers e.g. input list multi choice etc
-    if (inputType === 'refcontract') {
-      extractChoice = 'refcontract'
+    if (inputType === 'library') {
+      extractChoice = input[0]
       refContract = selection.refcontract
     } else {
-      extractChoice = selection[0]
+      extractChoice = input[0]
     }
-    console.log('choice')
+    console.log('choice-----')
     console.log(extractChoice)
     if (extractChoice === 'exit') {
       console.log('exit the interactive prompt')
       process.exit(1)
-    } else if (extractChoice === 'datatype') {
-      console.log('get library ref contract for data type, need contract id')
-    } else if (extractChoice === 'refcontract') {
-      // go and look up reference contract for with id
+    } else if (inputType === 'peerlibrary') {
+      console.log('get library ref contract from peers personal library')
+    } else if (inputType === 'library') {
+      // go and look up reference contract for with id from network library
       let peerInput = {}
-      peerInput.type = 'datatype'
+      peerInput.type = extractChoice
       peerInput.refcont = refContract
       // need to send input to SafeFlow via a message
       let libraryInput = this.liveLibrary.formQuery(peerInput)
       // pass via messenger
+      console.log('post form q')
+      console.log(libraryInput)
       this.messageLive.emit('library', libraryInput)
     }
    }
