@@ -1,6 +1,6 @@
 {
   "name": "hop-cli",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "cli for HOP network",
   "type": "module",
   "main": "bin/index.js",
@@ -28,7 +28,7 @@
   "homepage": "https://github.com/healthscience/hop-cli#readme",
   "dependencies": {
     "commander": "^9.4.1",
-    "hop-ecs": "^0.0.5",
+    "hop-ecs": "^0.0.6",
     "inquirer": "^9.1.4",
     "ws": "^8.11.0"
   }
