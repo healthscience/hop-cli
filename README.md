@@ -5,6 +5,7 @@ git clone https://github.com/healthscience/hop-cli.git
 
 sudo npm install -g .
 
+or  sudo npm install hop-cli-tool -g
 
 Usage: hop [options] [command]
 
