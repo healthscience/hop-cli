@@ -1,7 +1,9 @@
 # hop-cli
 command line interface for hop
 
-npm install hop-cli -g
+git clone https://github.com/healthscience/hop-cli.git
+
+sudo npm install -g .
 
 
 Usage: hop [options] [command]
