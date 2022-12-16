@@ -13,6 +13,7 @@ import util from 'util'
 import EventEmitter from 'events'
 import WebSocket from 'ws'
 import { start } from 'repl'
+import { builtinModules } from 'module'
 
 class MessageHOP extends EventEmitter {
 
@@ -20,6 +21,9 @@ class MessageHOP extends EventEmitter {
     super()
     this.connected = false
     this.wsocket = {}
+    this.hyperspaceFiles = {}
+    this.hyperspaceStores = {}
+    this.safeflowLibrary = []
   }
 
   /**
@@ -28,7 +32,6 @@ class MessageHOP extends EventEmitter {
   *
   */
   setwSocket = function () {
-    console.log('set socket client')
     let wsClient = new WebSocket('wss://127.0.0.1:9888', {
       noServer: true,
       rejectUnauthorized: false,
@@ -36,7 +39,6 @@ class MessageHOP extends EventEmitter {
     })
     this.wsocket = wsClient
     wsClient.on('open', function open() {
-      console.log('ws open client')
       this.connected = true
       this.emit('message', 'live')
     })
@@ -65,7 +67,6 @@ class MessageHOP extends EventEmitter {
   *
   */
   checkSocket = function () {
-    console.log('check socket')
     return this.connected
   }
 
@@ -75,20 +76,46 @@ class MessageHOP extends EventEmitter {
   *
   */
   displayFormatter = function (data) {
-    console.log('display formatter')
     // console.log(data)
     if (typeof data !== 'string') {
       let buf = JSON.parse(data)
-      // let bufJSON = JSON.parse(buf.toString())
-      // let convert = bufJSON.data.toJSON()
-      // let stringO = data.toString()
-      // console.log(JSON.parse(stringO))
-      // let dataString = data.toString()
-      console.log(buf)
-      if (buf.type !== 'hyperbee-pubkeys') {
-        // console.table(buf)
-        console.log(util.inspect(buf, {showHidden: false, depth: null, colors: true}))
-        this.emit('startover')
+      // console.log(buf.type)
+      // check if library nxp contract info returned?
+      if (buf.type === 'peerlibrary' && buf.refcontract === 'experiment') {
+        // do that check
+        for (let liveC of this.safeflowLibrary) {
+          if (buf.data.key === liveC) {
+            // update message for SafeFlow Input
+            const sfInput = {}
+            sfInput.type = 'safeflow'
+            sfInput.reftype = 'ignore'
+            sfInput.action = 'networkexperiment'
+            sfInput.data = {}
+            sfInput.data.exp = buf.data
+            sfInput.data.modules = buf.data.modules
+            this.emit('safeflow', sfInput)
+            // remove contract from list
+            const index = this.safeflowLibrary.indexOf(liveC)
+            this.safeflowLibrary.splice(index, 1)
+          } else {
+            console.log('normal display the data')
+          }
+        }
+        // let bufJSON = JSON.parse(buf.toString())
+        // let convert = bufJSON.data.toJSON()
+        // let stringO = data.toString()
+        // console.log(JSON.parse(stringO))
+        // let dataString = data.toString()
+      } else if (buf.type === 'hyperbee-pubkeys') {
+        this.hyperspaceStores = data
+      } else if (buf.type === 'hyperdrive-pubkey') {
+        this.hyperspaceFiles = data
+      } else {
+        if (buf.type !== 'hyperbee-pubkeys') {
+          // console.table(buf)
+          console.log(util.inspect(buf, {showHidden: false, depth: null, colors: true}))
+          this.emit('startover')
+        }
       }
     }
 
@@ -111,8 +138,16 @@ class MessageHOP extends EventEmitter {
     })
 
     this.on('library', (messout) => {
-      // console.log('library out message')
       // console.log(messout)
+      this.wsocket.send(JSON.stringify(messout))
+    })
+
+    this.on('safeflow', (messout) => {
+      // if type library, putting together info for data requiest to safeflow
+      // tell formatter so message can then be send to SafeFlow
+      if (messout.type === 'library') {
+        this.safeflowLibrary.push(messout.data.refcontract)
+      }
       this.wsocket.send(JSON.stringify(messout))
     })
    }
