@@ -22,9 +22,9 @@ class CliLogic extends EventEmitter {
     super()
     this.startHOP = new LaunchHOP()
     this.messageLive = new MessageHop()
-    this.messageListener()
     this.liveLibrary = new Library()
-
+    this.interactionListener()
+    this.setInteractive = 0
   }
 
   /**
@@ -36,7 +36,7 @@ class CliLogic extends EventEmitter {
     if (type === 'launch') {
       this.startHOP.startSFECS(options)
       this.messageLive.setwSocket()
-      this.messageLive.messageSend()
+      this.messageLive.messageSendListeners()
       if (options.interactive === true) {
         this.InteractiveHOP(type)
       } else {
@@ -58,6 +58,79 @@ class CliLogic extends EventEmitter {
 
   /**
   * 
+  * @method startMessageAuth
+  *
+  */
+  startMessageAuth = function () {
+    this.messageLive.emit('hop-selfauth', options)
+  }
+
+  /**
+  * 
+  * @method interactionListener
+  *
+  */
+  interactionListener = function () {
+    this.messageLive.on('savetofile', () => {
+      this.savetoFile('')
+    })  
+    this.messageLive.on('startover', () => {
+      this.InteractiveHOP('')
+    })  
+    this.messageLive.once('interactive', (data) => {
+      this.InteractiveHOP(data)
+    })    
+  }
+
+  /**
+  * get data from SafeFlow
+  * @method savetoFile
+  *
+  */
+  savetoFile = function (input) {
+  let saveQuestion = [{ 
+    question: `Save data to JSON file?`,
+    options: [
+      'yes',
+      'no'
+    ]
+  }].map(({
+    question,
+    options
+  }, i) => ({  
+    type: 'list',
+    message: question,
+    choices: options,
+    name: `${i}`,
+  }))
+  
+    inquirer
+    .prompt(saveQuestion)
+    .then((answers) => {
+      // addition prompt yes or no?
+      this.saveFileWorker(answers, 'safeflowdata')
+    })
+  }
+
+  /**
+  * 
+  * @method saveFileWorker
+  *
+  */
+  saveFileWorker = function (data, context) {
+    console.log('save file or not then start over')
+    console.log(data)
+    console.log(context)
+    if (data[0] === 'yes') {
+      console.log('save file fuction')
+      // let saveFile = this.FileUtility(data)
+    } else {
+      this.messageLive.emit('startover')
+    }
+  }
+
+  /**
+  * 
   * @method checkHOPconnection
   *
   */
@@ -68,27 +141,6 @@ class CliLogic extends EventEmitter {
     return connectionLive
   }
 
-
-  /**
-  * 
-  * @method messageListener
-  *
-  */
-   messageListener = function () {
-    this.messageLive.on('hop', (data) => {
-      console.log('HOP No network connected')
-    })
-    this.messageLive.on('message', (data) => {
-      console.log('HOP Connected')
-    })
-    this.messageLive.on('startover', () => {
-      console.log('ready for new input')
-      this.InteractiveHOP('launch')
-    })    
-  }
-
-
-
   /**
   * 
   * @method InteractiveHOP
@@ -96,60 +148,66 @@ class CliLogic extends EventEmitter {
   */
   InteractiveHOP = function (type) {
     // need to have different interaction for setup, library, get or put etc.
-    let baseContracttype = [{ 
-      question: `Type of contract`,
-      options: [
-        'bentoboard',
-        'library'
-      ]
-    }].map(({
-      question,
-      options
-    }, i) => ({  
-      type: 'list',
-      message: question,
-      choices: options,
-      name: `${i}`,
-    }))
-  
-    let testQuestions = [{ 
-      question: `List peer bentoBoards`,
-       options: [ 
-        '1',  
-        '2',  
-        '10' 
-      ]
-    }].map(({
-      question,
-      options
-    }, i) => ({  
-      type: 'list',
-       message: question,
-       choices: options,
-       name: `${i}`,
-    }))
-  
-    let questions = []
-  
-    questions = baseContracttype
-  
-    inquirer
-    .prompt(questions)
-    .then((answers) => {
-      // addition prompt yes or no?
-      if (answers[0] === 'bentoboard') {
-        this.safeflowModulecontract(answers)
-      } else if (answers[0] === 'library') {
-        this.typeContract(answers)
-      }
-    })
-    .catch((error) => {
-      if (error.isTtyError) {
-        // Prompt couldn't be rendered in the current environment
-      } else {
-        // Something else went wrong
-      }
-    })
+    if (this.setInteractive === 1 || this.setInteractive === 2) {
+      this.setInteractive += 1
+      let baseContracttype = [{ 
+        question: `Type of contract`,
+        options: [
+          'bentoboard',
+          'library'
+        ]
+      }].map(({
+        question,
+        options
+      }, i) => ({  
+        type: 'list',
+        message: question,
+        choices: options,
+        name: `${i}`,
+      }))
+    
+      let testQuestions = [{ 
+        question: `List peer bentoBoards`,
+        options: [ 
+          '1',  
+          '2',  
+          '10' 
+        ]
+      }].map(({
+        question,
+        options
+      }, i) => ({  
+        type: 'list',
+        message: question,
+        choices: options,
+        name: `${i}`,
+      }))
+    
+      let questions = []
+    
+      questions = baseContracttype
+    
+      inquirer
+      .prompt(questions)
+      .then((answers) => {
+        // addition prompt yes or no?
+        this.setInteractive = 0
+        if (answers[0] === 'bentoboard') {
+          this.safeflowModulecontract(answers)
+        } else if (answers[0] === 'library') {
+          this.typeContract(answers)
+        }
+      })
+      .catch((error) => {
+        if (error.isTtyError) {
+          // Prompt couldn't be rendered in the current environment
+        } else {
+          // Something else went wrong
+        }
+      })
+    } else {
+      this.setInteractive++
+    }
   }
 
   /**
@@ -253,13 +311,13 @@ class CliLogic extends EventEmitter {
       name: `${i}`,
     }))
     
-      inquirer
-      .prompt(baseQuestion)
-      .then((answers) => {
-        // addition prompt yes or no?
-        this.askRefContract(answers, 'library')
-      })
-   }
+    inquirer
+    .prompt(baseQuestion)
+    .then((answers) => {
+      // addition prompt yes or no?
+      this.askRefContract(answers, 'library')
+    })
+  }
 
   /**
   * 
@@ -290,12 +348,12 @@ class CliLogic extends EventEmitter {
       name: `${i}`,
     }))
     
-      inquirer
-      .prompt(baseQuestion)
-      .then((answers) => {
-        // addition prompt yes or no?
-        this.askRefContract(answers, 'library')
-      })
+    inquirer
+    .prompt(baseQuestion)
+    .then((answers) => {
+      // addition prompt yes or no?
+      this.askRefContract(answers, 'library')
+    })
    }
 
   /**
@@ -324,12 +382,12 @@ class CliLogic extends EventEmitter {
       }
     ]
     
-      inquirer
-      .prompt(refQuestion)
-      .then((answers) => {
-        // addition prompt yes or no?
-        this.inputLogic(input, answers, type)
-      })
+    inquirer
+    .prompt(refQuestion)
+    .then((answers) => {
+      // addition prompt yes or no?
+      this.inputLogic(input, answers, type)
+    })
    }
 
 

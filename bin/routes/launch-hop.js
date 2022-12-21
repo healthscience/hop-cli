@@ -27,8 +27,9 @@ class LaunchHOP extends EventEmitter {
   *
   */
   startSFECS = function (options) {
+    console.log('start HOP CLI')
+    console.log(options)
     let hopSF = new LiveHOP(options)
-    hopSF.liveHyperspace()
   }
 }
 

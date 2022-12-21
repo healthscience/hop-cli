@@ -24,6 +24,7 @@ class MessageHOP extends EventEmitter {
     this.hyperspaceFiles = {}
     this.hyperspaceStores = {}
     this.safeflowLibrary = []
+    // this.messageListener()
   }
 
   /**
@@ -39,6 +40,7 @@ class MessageHOP extends EventEmitter {
     })
     this.wsocket = wsClient
     wsClient.on('open', function open() {
+      console.log('websocket client')
       this.connected = true
       this.emit('message', 'live')
     })
@@ -57,8 +59,6 @@ class MessageHOP extends EventEmitter {
       // process.exit(1)
       this.emit('hop', 'none')
      })
-
-     // this.messageListener(wsClient)
   }
 
   /**
@@ -76,6 +76,7 @@ class MessageHOP extends EventEmitter {
   *
   */
   displayFormatter = function (data) {
+    // console.log('display formatter')
     // console.log(data)
     if (typeof data !== 'string') {
       let buf = JSON.parse(data)
@@ -101,54 +102,81 @@ class MessageHOP extends EventEmitter {
             console.log('normal display the data')
           }
         }
-        // let bufJSON = JSON.parse(buf.toString())
-        // let convert = bufJSON.data.toJSON()
-        // let stringO = data.toString()
-        // console.log(JSON.parse(stringO))
-        // let dataString = data.toString()
       } else if (buf.type === 'hyperbee-pubkeys') {
         this.hyperspaceStores = data
       } else if (buf.type === 'hyperdrive-pubkey') {
         this.hyperspaceFiles = data
+      } else if (buf.type === 'auth-hop') {
+        this.emit('interactive', {})
       } else {
         if (buf.type !== 'hyperbee-pubkeys') {
+          // console.log('data back from SafeFlow-ECS')
+          // console.log(buf)
           // console.table(buf)
           console.log(util.inspect(buf, {showHidden: false, depth: null, colors: true}))
-          this.emit('startover')
+          // give option to save data as JSON file?
+          this.emit('savetofile')
         }
+      }
+    } else {
+      if (data == 'live') {
+        this.emit('hop-selfauth', {})
       }
     }
 
   }
 
+
   /**
-  * send message to protocol
-  * @method messageSend
+  * 
+  * @method messageListener
   *
   */
-  messageSend = function (ws) {
-    this.on('hop-m', (messout) => {
+  messageListener = function () {
+    this.on('hop', (data) => {
+    })
+    this.on('message', (data) => {
+    })  
+  }
+
+
+  /**
+  * send message to protocol
+  * @method messageSendListeners
+  *
+  */
+  messageSendListeners = function (ws) {
+    this.on('hop-selfauth', (messgout) => {
       let startHOP = {}
+      startHOP.type = 'safeflow'
       startHOP.reftype = 'ignore'
-      startHOP.type = messout.text
-      startHOP.action = messout.action
+      startHOP.action = 'selfauth'
+      startHOP.data = messgout
+      let jsonStart = JSON.stringify(startHOP)
+      this.wsocket.send(jsonStart)
+    })
+
+    this.on('hop-m', (messgout) => {
+      let startHOP = {}
+      startHOP.type = messgout.text
+      startHOP.reftype = 'ignore'
+      startHOP.action = messgout.action
       startHOP.data = {}
       let jsonStart = JSON.stringify(startHOP)
       this.wsocket.send(jsonStart)
     })
 
-    this.on('library', (messout) => {
-      // console.log(messout)
-      this.wsocket.send(JSON.stringify(messout))
+    this.on('library', (messgout) => {
+      this.wsocket.send(JSON.stringify(messgout))
     })
 
-    this.on('safeflow', (messout) => {
+    this.on('safeflow', (messgout) => {
       // if type library, putting together info for data requiest to safeflow
       // tell formatter so message can then be send to SafeFlow
-      if (messout.type === 'library') {
-        this.safeflowLibrary.push(messout.data.refcontract)
+      if (messgout.type === 'library') {
+        this.safeflowLibrary.push(messgout.data.refcontract)
       }
-      this.wsocket.send(JSON.stringify(messout))
+      this.wsocket.send(JSON.stringify(messgout))
     })
    }
 
