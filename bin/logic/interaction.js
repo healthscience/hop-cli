@@ -42,6 +42,8 @@ class CliLogic extends EventEmitter {
       } else {
         // setup headless mode
       }
+    } else if (type === 'headless') {
+      this.startHOP.startSFECS(options)
     } else if (type === 'message') {
       // first make sure HOP connection is live & launched
       // checkHOPconnection()

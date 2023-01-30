@@ -25,6 +25,17 @@ program
       cliLive.hopRouter('launch', options)
     })
 
+    program    
+    .command('headless [headless]')
+    .description('start HOP')
+    .option('-a, --address [addr]', 'web socket url')
+    .option('-p, --port [port]', 'web socket port', '9888')
+    .option('-i, --interactive', 'live commands', false)
+    // .parse(process.argv)
+    .action((str, options) => {
+      cliLive.hopRouter('headless', options)
+    })
+
 program
     .command('library [library]')
     .description('query the network library')
